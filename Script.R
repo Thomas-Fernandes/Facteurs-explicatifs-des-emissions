@@ -213,10 +213,10 @@ summary(model4)
 #On exporte les résultats dans un fichier word avec stargazer
 stargazer(model1, model2, model3, model4,
           dep.var.caption = "Dependant variable : Emissions de CO2/hab",
-          type = "html",
+          type = "text",
           dep.var.labels = "Regression pour l'Autriche",
           covariate.labels = c("Pib/hab", "Temperature", "Population", "Constante"),
-          out = "Models/model_autriche.doc")
+          out = "Models/model_autriche.txt")
 
 #On plot les données
 Plot_Autriche <- ggplot(Autriche, aes(x = Pib, y = Emissions_CO2)) +
@@ -269,10 +269,10 @@ summary(model4)
 #On exporte les résultats dans un fichier word avec stargazer
 stargazer(model1, model2, model3, model4,
           dep.var.caption = "Dependant variable : Emissions de CO2/hab",
-          type = "html",
+          type = "text",
           dep.var.labels = "Regression pour l'Irlande",
           covariate.labels = c("Pib/hab", "Temperature", "Population", "Constante"),
-          out = "Models/model_Irlande.doc")
+          out = "Models/model_Irlande.txt")
 
 #On plot les données
 Plot_Irlande <- ggplot(Irlande, aes(x = Pib, y = Emissions_CO2)) +
@@ -325,10 +325,10 @@ summary(model4)
 #On exporte les résultats dans un fichier word avec stargazer
 stargazer(model1, model2, model3, model4,
           dep.var.caption = "Dependant variable : Emissions de CO2/hab",
-          type = "html",
+          type = "text",
           dep.var.labels = "Regression pour la Chine",
           covariate.labels = c("Pib/hab", "Temperature", "Population", "Constante"),
-          out = "Models/model_Chine.doc")
+          out = "Models/model_Chine.txt")
 
 #On plot les données
 Plot_Chine <- ggplot(Chine, aes(x = Pib, y = Emissions_CO2)) +
@@ -381,10 +381,10 @@ summary(model4)
 #On exporte les résultats dans un fichier word avec stargazer
 stargazer(model1, model2, model3, model4,
           dep.var.caption = "Dependant variable : Emissions de CO2/hab",
-          type = "html",
+          type = "text",
           dep.var.labels = "Regression pour l'Inde",
           covariate.labels = c("Pib/hab", "Temperature", "Population", "Constante"),
-          out = "Models/model_Inde.doc")
+          out = "Models/model_Inde.txt")
 
 #On plot les données
 Plot_Inde <- ggplot(Inde, aes(x = Pib, y = Emissions_CO2)) +
