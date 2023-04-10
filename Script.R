@@ -7,40 +7,33 @@ library(lubridate)
 library(plotly)
 library(ggplot2)
 
+setwd(dir = "C:/Users/thoma/Desktop/Github/Facteurs-explicatifs-des-emissions")
+
 #---------------------------
 #importation des données----
 #---------------------------
 
 #Emissions de CO2/hab
-Emissions_CO2 <- read_csv("G:/Drive partagés/L3/Atelier économétrie/Projet/Données/Données finales/CO2_per_capita.csv")
+Emissions_CO2 <- read_csv("db/CO2_per_capita.csv")
 Emissions_CO2 <- as.data.frame(Emissions_CO2)
 
 #Pib/hab
-Pib <- read_csv("G:/Drive partagés/L3/Atelier économétrie/Projet/Données/Données finales/GDP_per_capita.csv")
+Pib <- read_csv("db/GDP_per_capita.csv")
 Pib <- as.data.frame(Pib)
 
 #Températures
-Temperature <- read_csv("G:/Drive partagés/L3/Atelier économétrie/Projet/Données/Données finales/Global_Temperature.csv")
+Temperature <- read_csv("db/Global_temperature.csv")
 Temperature <- as.data.frame(Temperature)
 
 #Population
-Population <- read_csv("G:/Drive partagés/L3/Atelier économétrie/Projet/Données/Données finales/Population.csv")
+Population <- read_csv("db/Population.csv")
 Population <- as.data.frame(Population)
-
-#Niveau de la mer
-#Niveau_mer <- read_csv("G:/Drive partagés/L3/Atelier économétrie/Projet/Données/Données finales/Change_in_Mean_Sea_Levels.csv")
-#Niveau_mer <- as.data.frame(Niveau_mer)
-#DB finalement pas utilisée car trop compliquée à traiter
-#Les changement moyen du niveau de la mer sont classés par mer/ocean et ne sont ratachés à aucun pays
-#Il faudrait associé chaque mer à chaque pays ou utiliser la base au format geojson, ce qui dans les deux cas est bien trop long
-
 
 #--------------------------
 #Traitement des données----
 #--------------------------
 
-#On empile les données d'abord pour pouvoir plot, puis on les met de sort à avoir 1 colonne par pays
-
+#On empile les données d'abord pour pouvoir plot, puis on les met de sorte à avoir 1 colonne par pays
 
 #------Emissions de CO2/hab--------
 
@@ -52,12 +45,15 @@ colnames(Emissions_CO2) <- c("Pays", "Année", "Emissions_CO2")
 Emissions_CO2 <- Emissions_CO2 %>% filter(Année >= 1961)
 
 #Graph des emissions de CO2 pour l'Autriche, l'Irlande, la Chine et l'Inde
-Emissions_CO2 %>% 
+plot_emissions <- Emissions_CO2 %>% 
   filter(Pays %in% c("Austria", "Ireland", "China", "India")) %>% 
   ggplot(aes(x = Année, y = Emissions_CO2, color = Pays)) +
   geom_line() +
   labs(title = "Evolution des emissions de CO2/hab", x = "Année", y = "Emissions de CO2/hab") +
   theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("Plots/plot_emissions.png", plot_emissions, width = 10, height = 5, dpi = 300)
+plot_emissions
 
 #On spread les données pour avoir une colonne pour chaque pays
 Emissions_CO2 <- Emissions_CO2 %>% spread(Pays, Emissions_CO2)
@@ -80,12 +76,15 @@ Pib <- subset(Pib, Année >= 1961)
 Pib$Année <- as.numeric(Pib$Année)
 
 #On plot le Pib/hab pour l'Autriche, l'Irlande, la Chine et l'Inde
-Pib %>% 
+Plot_PIB <- Pib %>% 
   filter(Pays %in% c("Autriche", "Irlande", "Chine", "Inde")) %>% 
   ggplot(aes(x = Année, y = Pib, color = Pays)) +
   geom_line() +
   labs(title = "Evolution du Pib/hab", x = "Année", y = "Pib/hab") +
   theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("Plots/Plot_PIB.png", Plot_PIB, width = 10, height = 5, dpi = 300)
+Plot_PIB
 
 #Une colonne par pays
 Pib <- na.omit(Pib)
@@ -114,14 +113,16 @@ Temperature <- subset(Temperature, Année >= 1961)
 Temperature$Année <- as.numeric(Temperature$Année)
 
 #On plot la température on utilise loess pour avoir une courbe lisse
-
-Temperature %>% 
+Plot_Temperature <- Temperature %>% 
   filter(Pays %in% c("Austria", "Ireland", "China", "India")) %>% 
   ggplot(aes(x = Année, y = Temperature, color = Pays)) +
   geom_point() +
   geom_smooth(method = "loess", se = FALSE) +
   labs(title = "Evolution de la température", x = "Année", y = "Température") +
   theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("Plots/Plot_Temperature.png", Plot_Temperature, width = 10, height = 5, dpi = 300)
+Plot_Temperature
 
 #Une colonne par pays
 Temperature <- na.omit(Temperature)
@@ -140,13 +141,16 @@ Population <- subset(Population, Année >= 1960)
 Population$Année <- as.numeric(Population$Année)
 
 #On plot la population
-Population %>%
+Plot_population <- Population %>%
   filter(Pays %in% c("Austria", "Ireland", "China", "India")) %>% 
   ggplot(aes(x = Année, y = Population, color = Pays)) +
   geom_line() +
   scale_y_log10(labels = scales::comma) +
   labs(title = "Evolution de la croissance démographique", x = "Année", y = "Population") +
   theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("Plots/Plot_population.png", Plot_population, width = 10, height = 5, dpi = 300)
+Plot_population
 
 #Pays en colonne
 Population <- Population %>% spread(Pays, Population)
@@ -188,7 +192,11 @@ Population_Chine <- Population_Chine[-1,]
 #On fait un nouveau dataframe pour chaque pays, avec les données correspondantes pour le modèle
 
 #Autriche
-Autriche <- data.frame(Année = Emissions_CO2$Année, Emissions_CO2 = Emissions_CO2$Austria, Pib = Pib$Autriche, Temperature = Temperature$Austria, Population = Population_Autriche$Taux_Croissance)
+Autriche <- data.frame(Année = Emissions_CO2$Année,
+                       Emissions_CO2 = Emissions_CO2$Austria,
+                       Pib = Pib$Autriche,
+                       Temperature = Temperature$Austria,
+                       Population = Population_Autriche$Taux_Croissance)
 
 #Matrice de corrélation pour vérifier les hypothèses
 cor(Autriche)
@@ -203,37 +211,49 @@ model4 <- lm(Emissions_CO2 ~ Pib, data = Autriche)
 summary(model4)
 
 #On exporte les résultats dans un fichier word avec stargazer
-setwd("G:/Drive partagés/L3/Atelier économétrie/Projet/Models")
 stargazer(model1, model2, model3, model4,
           dep.var.caption = "Dependant variable : Emissions de CO2/hab",
           type = "html",
           dep.var.labels = "Regression pour l'Autriche",
           covariate.labels = c("Pib/hab", "Temperature", "Population", "Constante"),
-          out = "model_autriche.doc")
+          out = "Models/model_autriche.doc")
 
 #On plot les données
-ggplot(Autriche, aes(x = Pib, y = Emissions_CO2)) +
+Plot_Autriche <- ggplot(Autriche, aes(x = Pib, y = Emissions_CO2)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
   labs(title = "Autriche", x = "Pib/hab", y = "Emissions de CO2") +
   theme(plot.title = element_text(hjust = 0.5))
 
+ggsave("Plots/Plot_Autriche.png", Plot_Autriche, width = 10, height = 5, dpi = 300)
+Plot_Autriche
 
 #On plot la normalité des résidus
-ggplot(model1, aes(sample = resid(model1))) +
+Plot_Autriche_res_norm <- ggplot(model1, aes(sample = resid(model1))) +
   stat_qq() +
   stat_qq_line() +
   labs(title = "Normalité des résidus", x = "Quantiles théoriques", y = "Quantiles des résidus") +
   theme(plot.title = element_text(hjust = 0.5))
 
+ggsave("Plots/Plot_Autriche_res_norm.png", Plot_Autriche_res_norm, width = 10, height = 5, dpi = 300)
+Plot_Autriche_res_norm
+
 #On plot la densité des résidus
-plot(density(model1$resid), main = "Densité des résidus", xlab = "Résidus", ylab = "Densité")
+Plot_Autriche_dense_res <- plot(density(model1$resid), main = "Densité des résidus", xlab = "Résidus", ylab = "Densité")
+ggsave("Plots/Plot_Autriche_dense_res.png", Plot_Autriche_dense_res, width = 10, height = 5, dpi = 300)
+Plot_Autriche_dense_res
 
 #On plot la variance des résidus
-plot(model1, which = 3)
+Plot_Autriche_var_res <- plot(model1, which = 3)
+ggsave("Plots/Plot_Autriche_var_res.png", Plot_Autriche_var_res, width = 10, height = 5, dpi = 300)
+Plot_Autriche_var_res
 
 #Irlande
-Irlande <- data.frame(Année = Emissions_CO2$Année, Emissions_CO2 = Emissions_CO2$Ireland, Pib = Pib$Irlande, Temperature = Temperature$Ireland, Population = Population_Irlande$Taux_Croissance)
+Irlande <- data.frame(Année = Emissions_CO2$Année,
+                      Emissions_CO2 = Emissions_CO2$Ireland,
+                      Pib = Pib$Irlande,
+                      Temperature = Temperature$Ireland,
+                      Population = Population_Irlande$Taux_Croissance)
 
 cor(Irlande)
 
@@ -252,36 +272,44 @@ stargazer(model1, model2, model3, model4,
           type = "html",
           dep.var.labels = "Regression pour l'Irlande",
           covariate.labels = c("Pib/hab", "Temperature", "Population", "Constante"),
-          out = "model_Irlande.doc")
+          out = "Models/model_Irlande.doc")
 
 #On plot les données
-ggplot(Irlande, aes(x = Pib, y = Emissions_CO2)) +
+Plot_Irlande <- ggplot(Irlande, aes(x = Pib, y = Emissions_CO2)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
   labs(title = "Irlande", x = "Pib/hab", y = "Emissions de CO2") +
   theme(plot.title = element_text(hjust = 0.5))
 
+ggsave("Plots/Plot_Irlande.png", Plot_Irlande, width = 10, height = 5, dpi = 300)
+Plot_Irlande
+
 #On plot la normalité des résidus
-ggplot(model1, aes(sample = resid(model1))) +
+Plot_Irlande_norm_res <- ggplot(model1, aes(sample = resid(model1))) +
   stat_qq() +
   stat_qq_line() +
   labs(title = "Normalité des résidus", x = "Quantiles théoriques", y = "Quantiles des résidus") +
   theme(plot.title = element_text(hjust = 0.5))
 
+ggsave("Plots/Plot_Irlande_norm_res.png", Plot_Irlande_norm_res, width = 10, height = 5, dpi = 300)
+Plot_Irlande_norm_res
+
 #On plot la densité des résidus
-plot(density(model1$resid), main = "Densité des résidus", xlab = "Résidus", ylab = "Densité")
+Plot_Irlande_dens_res <- plot(density(model1$resid), main = "Densité des résidus", xlab = "Résidus", ylab = "Densité")
+ggsave("Plots/Plot_Irlande_dens_res.png", Plot_Irlande_dens_res, width = 10, height = 5, dpi = 300)
+Plot_Irlande_dens_res
 
 #On plot la variance des résidus
-plot(model1, which = 3)
-
-#On regarde pour l'Irlande entre 1960 et 2010
-Irlande <- data.frame(Année = Emissions_CO2$Année, Emissions_CO2 = Emissions_CO2$Ireland, Pib = Pib$Irlande, Temperature = Temperature$Ireland, Population = Population_Irlande$Taux_Croissance)
-Irlande <- Irlande[1:51,]
-model1 <- lm(Emissions_CO2 ~ Pib + Temperature + Population, data = Irlande)
-summary(model1)
+Plot_Irlande_var_res <- plot(model1, which = 3)
+ggsave("Plots/Plot_Irlande_var_res.png", Plot_Irlande_var_res, width = 10, height = 5, dpi = 300)
+Plot_Irlande_var_res
 
 #Chine
-Chine <- data.frame(Année = Emissions_CO2$Année, Emissions_CO2 = Emissions_CO2$China, Pib = Pib$Chine, Temperature = Temperature$China, Population = Population_Chine$Taux_Croissance)
+Chine <- data.frame(Année = Emissions_CO2$Année,
+                    Emissions_CO2 = Emissions_CO2$China,
+                    Pib = Pib$Chine,
+                    Temperature = Temperature$China,
+                    Population = Population_Chine$Taux_Croissance)
 
 cor(Chine)
 
@@ -300,30 +328,44 @@ stargazer(model1, model2, model3, model4,
           type = "html",
           dep.var.labels = "Regression pour la Chine",
           covariate.labels = c("Pib/hab", "Temperature", "Population", "Constante"),
-          out = "model_Chine.doc")
+          out = "Models/model_Chine.doc")
 
 #On plot les données
-ggplot(Chine, aes(x = Pib, y = Emissions_CO2)) +
+Plot_Chine <- ggplot(Chine, aes(x = Pib, y = Emissions_CO2)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
   labs(title = "Chine", x = "Pib/hab", y = "Emissions de CO2") +
   theme(plot.title = element_text(hjust = 0.5))
 
+ggsave("Plots/Plot_Chine.png", Plot_Chine, width = 10, height = 5, dpi = 300)
+Plot_Chine
+
 #On plot la normalité des résidus
-ggplot(model1, aes(sample = resid(model1))) +
+Plot_Chine_norm_res <- ggplot(model1, aes(sample = resid(model1))) +
   stat_qq() +
   stat_qq_line() +
   labs(title = "Normalité des résidus", x = "Quantiles théoriques", y = "Quantiles des résidus") +
   theme(plot.title = element_text(hjust = 0.5))
 
+ggsave("Plots/Plot_Chine_norm_res.png", Plot_Chine_norm_res, width = 10, height = 5, dpi = 300)
+Plot_Chine_norm_res
+
 #On plot la densité des résidus
-plot(density(model1$resid), main = "Densité des résidus", xlab = "Résidus", ylab = "Densité")
+Plot_Chine_dens_res <- plot(density(model1$resid), main = "Densité des résidus", xlab = "Résidus", ylab = "Densité")
+ggsave("Plots/Plot_Chine_dens_res.png", Plot_Chine_dens_res, width = 10, height = 5, dpi = 300)
+Plot_Chine_dens_res
 
 #On plot la variance des résidus
-plot(model1, which = 3)
+Plot_Chine_var_res <- plot(model1, which = 3)
+ggsave("Plots/Plot_Chine_var_res.png", Plot_Chine_var_res, width = 10, height = 5, dpi = 300)
+Plot_Chine_var_res
 
 #Inde
-Inde <- data.frame(Année = Emissions_CO2$Année, Emissions_CO2 = Emissions_CO2$India, Pib = Pib$Inde, Temperature = Temperature$India, Population = Population_Inde$Taux_Croissance)
+Inde <- data.frame(Année = Emissions_CO2$Année,
+                   Emissions_CO2 = Emissions_CO2$India,
+                   Pib = Pib$Inde,
+                   Temperature = Temperature$India,
+                   Population = Population_Inde$Taux_Croissance)
 
 cor(Inde)
 
@@ -342,28 +384,34 @@ stargazer(model1, model2, model3, model4,
           type = "html",
           dep.var.labels = "Regression pour l'Inde",
           covariate.labels = c("Pib/hab", "Temperature", "Population", "Constante"),
-          out = "model_Inde.doc")
+          out = "Models/model_Inde.doc")
 
 #On plot les données
-ggplot(Inde, aes(x = Pib, y = Emissions_CO2)) +
+Plot_Inde <- ggplot(Inde, aes(x = Pib, y = Emissions_CO2)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
   labs(title = "Inde", x = "Pib/hab", y = "Emissions de CO2") +
   theme(plot.title = element_text(hjust = 0.5))
 
+ggsave("Plots/Plot_Inde.png", Plot_Inde, width = 10, height = 5, dpi = 300)
+Plot_Inde
+
 #On plot la normalité des résidus avec labels
-ggplot(Inde, aes(sample = model1$residuals)) +
+Plot_Inde_norm_res <- ggplot(Inde, aes(sample = model1$residuals)) +
   stat_qq() +
   stat_qq_line() +
   labs(title = "Normalité des résidus", x = "Quantiles théoriques", y = "Quantiles des résidus") + 
   theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("Plots/Plot_Inde_norm_res.png", Plot_Inde_norm_res, width = 10, height = 5, dpi = 300)
+Plot_Inde_norm_res
 
 #On plot la normalité des résidus
 residus <- resid(model1)
 plot(density(residus), main = "Densité des résidus", xlab = "Résidus", ylab = "Densité")
 
 #On vérifie que la variance des résidus est constante
-plot(model1, which = 3)
+plot_Inde_var_res <- plot(model1, which = 3)
 
 #------------------------
 #----Deuxième partie-----
@@ -375,7 +423,7 @@ plot(model1, which = 3)
 #On va essayer d'expliquer les émissions de CO2/hab par le nombre de désastres climatiques par habitant
 
 #Nombre de désastres climatiques
-Disaster <- read_csv("G:/Drive partagés/L3/Atelier économétrie/Projet/Données/Données finales/Climate_related_disaster.csv")
+Disaster <- read_csv("db/Climate_related_disaster.csv")
 Disaster <- as.data.frame(Disaster)
 
 #------Disaster--------
@@ -404,12 +452,15 @@ for (i in 1:nrow(Disaster)) {
 }
 
 #On plot le cumul des disasters en fonction du temps pour l'Autriche, l'Irlande, la Chine et l'Inde
-Disaster %>%
+Plot_cumul_disaster <- Disaster %>%
   filter(Pays %in% c("Austria", "Ireland", "China", "India")) %>% 
   ggplot(aes(x = Année, y = Disaster_cumul, color = Pays)) +
   geom_line() +
   labs(title = "Cumul des disasters", x = "Année", y = "Disaster") +
   theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("Plots/Plot_cumul_disaster.png", Plot_cumul_disaster, width = 10, height = 5, dpi = 300)
+Plot_cumul_disaster
 
 #On supprime la colonne cumulative
 Disaster <- Disaster[,-4]
@@ -422,10 +473,10 @@ Disaster <- Disaster %>% select(Année, Austria, Ireland, China, India)
 for (i in 1:nrow(Disaster)) {
   if (i > 1) {
     if (Disaster$Année[i] == Disaster$Année[i-1]) {
-      Disaster$Austria[i] <- Disaster$Austria[i] / Population_Autriche$Population[i]
-      Disaster$Ireland[i] <- Disaster$Ireland[i] / Population_Irlande$Population[i]
-      Disaster$China[i] <- Disaster$China[i] / Population_Chine$Population[i]
-      Disaster$India[i] <- Disaster$India[i] / Population_Inde$Population[i]
+        Disaster$Austria[i] <- Disaster$Austria[i] / Population_Autriche$Population[i]
+        Disaster$Ireland[i] <- Disaster$Ireland[i] / Population_Irlande$Population[i]
+        Disaster$China[i]   <- Disaster$China[i]   / Population_Chine$Population[i]
+        Disaster$India[i]   <- Disaster$India[i]   / Population_Inde$Population[i]
     }
   }
 }
